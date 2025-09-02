@@ -1,77 +1,128 @@
-# Accelerating Transformer Training with Monte Carlo Sampling
+# MC-Learn: Accelerating Transformer Training with Monte Carlo Sampling
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mikebaloun/MC-Learn/blob/main/Monte_Carlo_Learn.ipynb)
 
-This project, titled MC-Learn, is an implementation of an adaptive sampling algorithm designed to reduce the time and computational cost of fine-tuning Transformer models. By intelligently selecting the most informative data points during training, this method achieves performance comparable to traditional training methods in less time.
+MC-Learn is an adaptive sampling algorithm designed to reduce the wall-clock time and computational cost of fine-tuning Transformer models.  
+By selectively training on the **most informative examples**, it achieves near-baseline performance in a fraction of the time.
 
-## The Problem
+---
 
-Training large language models is a resource-intensive process. Standard training methods treat all data points equally, expending the same computational effort on low-loss, redundant examples as on high-loss, informative ones.
+## 🚩 Motivation
 
-## The Solution: How It Works
+Training large language models is expensive.  
+Standard fine-tuning wastes resources by treating **every example equally** — spending the same compute on easy, redundant data as on difficult, high-variance samples.
 
-This algorithm employs an adaptive sampling strategy based on Monte Carlo methods to improve training efficiency. Instead of processing every data point, a lightweight surrogate model first evaluates the difficulty of a candidate pool of examples. The system then constructs a smaller, high-value training batch from this pool, focusing the computational budget on the examples most beneficial for model improvement.
+MC-Learn changes this by **learning where to spend compute**.
 
-## Algorithm Architecture: A Deeper Look
+---
 
-The system is composed of several key modules that work in concert to optimize the training process.
+## 🧩 How It Works
 
-### 🧠 The Policy Learner
+Instead of processing the full dataset every step:
 
-This is the core decision-making component of the system. It continuously learns and updates a sampling policy to identify which data provides the most informative gradient signal at any given point in training. It manages this by adapting three key parameters:
-1.  **Class Weights:** Dynamically allocates more budget to entire data classes where the model exhibits higher gradient variance.
-2.  **Sampling Temperature:** Controls the sharpness of the sampling distribution within a class, balancing between exploiting the most difficult examples and exploring a wider variety of data.
-3.  **Replay Share:** Determines the proportion of data drawn uniformly from a replay buffer, which acts as a regularizer to ensure the model maintains general knowledge and does not overfit to the adaptively-sampled "hard" examples.
+1. **Score:** A lightweight surrogate head scores a candidate pool for difficulty.  
+2. **Select:** A smaller, high-value batch is drawn (with replay regularization).  
+3. **Train:** The model updates on this batch with a near-unbiased, low-variance gradient estimate.  
+4. **Adapt:** Sampling policy and budget update dynamically based on runtime measurements and variance signals.
 
-### ⚖️ The Budget Solver
+This creates a **compute-efficient training loop**: spend more on the hardest, most useful data; spend less on redundant data.
 
-This is the resource allocation module. Its function is to ensure the training process adheres to a predefined computational budget (e.g., a target percentage of the baseline training time). It continuously measures the wall-clock cost of its core operations and uses these metrics to solve for the optimal batch size that minimizes variance subject to the budget constraint.
+---
 
-### 👷 The Sampler
+## ⚙️ System Components
 
-This is the data selection module. It executes the strategy defined by the `Policy Learner` and `BudgetSolver`. It scores a large candidate pool of data, then constructs the final, high-value batch according to the learned policy for the `Trainer` to process.
+### 🧠 Policy Learner
+Learns a sampling strategy online:
+- **Class Weights:** Allocate more budget to classes with higher gradient variance.  
+- **Sampling Temperature (τ):** Control sharpness of within-class selection.  
+- **Replay Share (ρ):** Mix in a replay buffer to regularize and prevent forgetting.  
+- **ESS Guard:** Monitors effective sample size to keep importance weighting stable.
 
-### ⚙️ The Trainer
+### ⚖️ Budget Solver
+Allocates compute under a fixed budget:
+- Tracks **measured per-example costs** of scoring, cheap head, and full forward.  
+- Solves for optimal batch size *M* and inclusion probabilities *q*.  
+- Ensures wall-clock training stays within target budget ratio.
 
-This is the orchestration engine that manages the end-to-end training loop. It coordinates the other modules and computes the loss using a control variate gradient estimator. This yields a near-unbiased, low-variance estimate of the full-dataset gradient under standard importance weighting. To control variance, importance weights are clipped (`w_clip = 10.0`), which introduces a small, controllable bias—a standard practice to ensure stable training in importance-weighted estimators.
+### 👷 Sampler
+Builds the actual training batch:
+- Scores a candidate pool with the surrogate head.  
+- Uses **soft top-k + replay union** to keep both hard and easy examples.  
+- Computes clipped **importance weights** for unbiasedness and variance control.
 
-## Results & Analysis
+### 🔄 Trainer
+Runs the training loop with a **control variate estimator**:
+
+\[
+\hat{L} = \sum_i w_i \, \ell_h(i) \;+\; \sum_{i \in S} \frac{w_i}{q_i}\,\big(\ell_f(i) - \ell_h(i)\big)
+\]
+
+- \( \ell_h \): cheap surrogate loss  
+- \( \ell_f \): full forward loss  
+- \( w_i \): importance weights  
+- \( q_i \): inclusion probability for full forward  
+
+This estimator reduces variance while remaining nearly unbiased.
+
+---
+
+## 📊 Results
 
 ### Experimental Setup
-
-* **Model:** **DistilBERT** (`distilbert-base-uncased`), a lighter and faster version of BERT, chosen for its efficiency.
-* **Dataset:** **AG News**, a standard benchmark for text classification, consisting of 120,000 training samples.
-* **Task:** 4-class news topic classification (World, Sports, Business, Sci/Tech).
-* **Baseline:** The "Baseline" run represents standard model fine-tuning for one full epoch on the entire training dataset.
-* **Reproducibility:** All results are the **mean ± standard deviation** over **3 runs** (seeds 42, 43, 44).
-* **Environment:** Google Colab with GPU (T4 by default). Recent PyTorch / Transformers / Datasets.
+- **Model:** `distilbert-base-uncased` (4-class classifier head)  
+- **Dataset:** AG News (120k training samples)  
+- **Task:** Topic classification (World, Sports, Business, Sci/Tech)  
+- **Environment:** Google Colab T4 GPU  
+- **Runs:** 1 epoch equivalent, averaged over 3 seeds (42/43/44)  
 
 ### Performance
 
-The method demonstrates a clear and significant trade-off between training speed and final model accuracy.
-
 | Run      | Accuracy (Mean ± Std)   | Time (s) (Mean ± Std) | Speedup |
 |----------|-------------------------|-----------------------|---------|
-| Baseline | 0.9309 ± 0.0004         | 316.3s ± 16.4s        | 1.00x   |
-| MC-Learn | 0.8698 ± 0.0008         | 111.7s ± 2.3s         | 2.83x   |
+| Baseline | 0.9309 ± 0.0004         | 316.3 ± 16.4          | 1.00×   |
+| MC-Learn | 0.8698 ± 0.0008         | 111.7 ± 2.3           | 2.83×   |
 
-The algorithm achieved an average **2.83x speedup** in training time, a substantial improvement that can lead to significant cost savings and faster development cycles. This performance gain was accompanied by an average absolute drop of **6.11%** in accuracy (a **6.6%** relative decrease), highlighting the algorithm's effectiveness in scenarios where training speed is a higher priority than achieving maximum accuracy (e.g., rapid prototyping).
+**Takeaway:** MC-Learn trains **~2.8× faster** with only a **6.1% absolute accuracy drop**.  
+This is ideal for rapid prototyping and compute-constrained settings.
 
-*Note: MC-Learn uses EMA distillation for stability, so its objective is not identical to baseline. The comparison is compute-matched (wall-clock), not strictly objective-matched.*
+*Note: Comparison is compute-matched (wall-clock), not loss-matched. MC-Learn uses EMA distillation for stability.*
 
-## Background and Foundational Concepts
+---
 
-This project builds upon several established concepts in machine learning and statistics to create its efficient training loop.
+## 🔍 Diagnostics
 
-* **Importance Sampling & Control Variates:** The core of the `Trainer` is a form of importance sampling, a classic **Monte Carlo** technique used to estimate properties of one distribution while drawing samples from another. It is enhanced with a **control variate** (the surrogate model's gradient), a powerful statistical method for reducing the variance of these estimates.
+MC-Learn includes built-in analysis tools:
+- **Confusion Matrix**: visualize which classes are confused.  
+- **Difficulty Score Distributions**: detect mismatches between scorer and true difficulty (“smoking gun” analysis).  
 
-* **Curriculum & Active Learning:** The strategy of focusing on "hard" examples is conceptually related to fields like **Curriculum Learning** (where models are trained on easy examples before hard ones) and **Active Learning** (where a model queries for labels of the most informative data). MC-Learn implements a form of self-directed, difficulty-based sampling inspired by these ideas.
+These help identify when the surrogate scorer is under- or over-confident.
 
-* **Efficient Transformer Training:** This work contributes to the broad and active research area of efficient NLP. The goal is to reduce the high computational cost of large models through techniques like model distillation (the inspiration for **DistilBERT**), pruning, quantization, and, in this case, efficient data sampling.
+---
 
-## How to Run
+## 📚 Background
 
-1.  Click the "Open in Colab" badge at the top of this page.
-2.  The notebook will open in a new tab.
-3.  Ensure a GPU is active by going to **Runtime → Change runtime type → T4 GPU**.
-4.  Run the cells in the notebook to execute the code and reproduce the results.
+MC-Learn builds on established concepts:
+- **Importance Sampling & Control Variates** — variance reduction in Monte Carlo estimators.  
+- **Curriculum & Active Learning** — focusing compute on harder or more informative examples.  
+- **Efficient Transformer Training** — complements pruning, quantization, and distillation.  
+
+---
+
+## 🚀 How to Run
+
+1. Click the **Colab badge** at the top.  
+2. Enable GPU: **Runtime → Change runtime type → GPU**.  
+3. Run all cells.  
+4. The script will:
+   - Train a baseline run  
+   - Train MC-Learn with adaptive sampling  
+   - Output metrics and diagnostics  
+
+---
+
+## 📌 Notes
+- Automatically adapts presets for fast GPUs (e.g. A100 with bf16).  
+- Importance weights are clipped at `w_clip = 10.0` to ensure stability.  
+- Designed for reproducibility: controlled seeds and fixed evaluation protocol.  
+
+---
