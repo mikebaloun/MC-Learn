@@ -77,7 +77,7 @@ This combination makes the training **much faster**, while keeping the gradient 
 | Baseline | 0.9309 ± 0.0004         | 316.3 ± 16.4          | 1.00×   |
 | MC-Learn | 0.8698 ± 0.0008         | 111.7 ± 2.3           | 2.83×   |
 
-**Takeaway:** MC-Learn trains **~2.8× faster** with only a **6.1% absolute accuracy drop**.  
+**Takeaway:** MC-Learn trains **~2.8× faster** with a **6.1% absolute accuracy drop**.  
 This is ideal for rapid prototyping and compute-constrained settings.
 
 *Note: Comparison is compute-matched (wall-clock), not loss-matched. MC-Learn uses EMA distillation for stability.*
@@ -116,8 +116,12 @@ MC-Learn builds on established concepts:
 ---
 
 ## Notes
+
 - Automatically adapts presets for varying GPUs (e.g. T4, A100).  
 - Importance weights are clipped at `w_clip = 10.0` to ensure stability.  
 - Designed for reproducibility: controlled seeds and fixed evaluation protocol.  
+- Includes built-in **diagnostic plots** (confusion matrix, difficulty distributions).  
+- **Best suited for**: rapid prototyping, ablation studies, and experiments where speed is more valuable than squeezing out the last few points of accuracy.  
+- **Not intended** as a drop-in replacement for full fine-tuning when maximum accuracy is the priority.  
 
 ---
