@@ -116,7 +116,7 @@ MC-Learn builds on established concepts:
 ---
 
 ## Notes
-- Automatically adapts presets for fast GPUs (e.g. A100 with bf16).  
+- Automatically adapts presets for varying GPUs (e.g. T4, A100).  
 - Importance weights are clipped at `w_clip = 10.0` to ensure stability.  
 - Designed for reproducibility: controlled seeds and fixed evaluation protocol.  
 
