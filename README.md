@@ -2,7 +2,7 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mikebaloun/MC-Learn/blob/main/Monte_Carlo_Learn.ipynb)
 
-This project, titled MC-Learn, is an implementation of an adaptive sampling algorithm designed to reduce the time and computational cost of fine-tuning Transformer models. By intelligently selecting the most informative data points during training, this method achieves performance comparable to traditional training methods in a fraction of the time.
+This project, titled MC-Learn, is an implementation of an adaptive sampling algorithm designed to reduce the time and computational cost of fine-tuning Transformer models. By intelligently selecting the most informative data points during training, this method achieves performance comparable to traditional training methods in less time.
 
 ## The Problem
 
