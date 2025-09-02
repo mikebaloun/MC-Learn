@@ -50,10 +50,10 @@ The method demonstrates a clear and significant trade-off between training speed
 
 | Run      | Accuracy | Time (s) | Speedup |
 |----------|----------|----------|---------|
-| Baseline | 0.9307   | 321.7s   | 1.00x   |
-| MC-Learn | 0.8688   | 108.5s   | 2.96x   |
+| Baseline | 0.9307   | 335.4s   | 1.00x   |
+| MC-Learn | 0.8695   | 114.4s   | 2.93x   |
 
-The algorithm achieved a **2.96x speedup** in training time, a substantial improvement that can lead to significant cost savings and faster development cycles. This performance gain was accompanied by an absolute drop of **6.19%** in accuracy, highlighting the algorithm's effectiveness in scenarios where training speed is a higher priority than achieving maximum accuracy (e.g., rapid prototyping).
+The algorithm achieved a **2.93x speedup** in training time, a substantial improvement that can lead to significant cost savings and faster development cycles. This performance gain was accompanied by an absolute drop of **6.12%** in accuracy (a **6.6%** relative decrease), highlighting the algorithm's effectiveness in scenarios where training speed is a higher priority than achieving maximum accuracy (e.g., rapid prototyping).
 
 ## How to Run
 
