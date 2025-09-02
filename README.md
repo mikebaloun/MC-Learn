@@ -2,7 +2,7 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mikebaloun/MC-Learn/blob/main/Monte_Carlo_Learn.ipynb)
 
-MC-Learn is an adaptive sampling algorithm designed to reduce the wall-clock time and computational cost of fine-tuning Transformer models. By selectively training on the **most informative examples**, it achieves a ~2.8× speedup in training at the cost of about a 6% absolute accuracy drop.
+MC-Learn is an adaptive sampling algorithm designed to reduce the wall-clock time and computational cost of fine-tuning Transformer models. In initial experiments on AG News, it achieved a ~2.8× training speedup with roughly a 6% absolute accuracy drop, demonstrating the trade-off between efficiency and accuracy.
 
 ---
 
@@ -70,15 +70,17 @@ This combination makes the training **much faster**, while keeping the gradient 
 - **Environment:** Google Colab T4 GPU  
 - **Runs:** 1 epoch equivalent, averaged over 3 seeds (42/43/44)  
 
-### Performance
+### Performance (AG News)
+
+The following results are from a single benchmark task (**AG News**, 4-class news classification).  
+They should be interpreted as a case study, not a universal guarantee across all datasets or models.
 
 | Run      | Accuracy (Mean ± Std)   | Time (s) (Mean ± Std) | Speedup |
 |----------|-------------------------|-----------------------|---------|
 | Baseline | 0.9309 ± 0.0004         | 316.3 ± 16.4          | 1.00×   |
 | MC-Learn | 0.8698 ± 0.0008         | 111.7 ± 2.3           | 2.83×   |
 
-**Takeaway:** MC-Learn trains **~2.8× faster** with a **6.1% absolute accuracy drop**.  
-This is ideal for rapid prototyping and compute-constrained settings.
+**Takeaway:** On AG News, MC-Learn trains ~2.8× faster with a 6.1% absolute accuracy drop.
 
 *Note: Comparison is compute-matched (wall-clock), not loss-matched. MC-Learn uses EMA distillation for stability.*
 
@@ -119,8 +121,9 @@ MC-Learn builds on established concepts:
 
 - Automatically adapts presets for varying GPUs (e.g. T4, A100).  
 - Importance weights are clipped at `w_clip = 10.0` to ensure stability.  
-- Designed for reproducibility: controlled seeds and fixed evaluation protocol.  
-- Includes built-in **diagnostic plots** (confusion matrix, difficulty distributions).  
+- Designed for reproducibility: controlled seeds and fixed evaluation protocol.
+- Current results are reported **only on AG News**. Performance may differ on other datasets and tasks.  
+- Future work includes benchmarking on additional NLP datasets (e.g., SST-2, IMDB, MNLI) and exploring scaling to larger models.  
 - **Best suited for**: rapid prototyping, ablation studies, and experiments where speed is more valuable than squeezing out the last few points of accuracy.  
 - **Not intended** as a drop-in replacement for full fine-tuning when maximum accuracy is the priority.  
 
