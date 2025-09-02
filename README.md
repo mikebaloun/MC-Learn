@@ -8,19 +8,6 @@ This project, titled MC-Learn, is an implementation of an adaptive sampling algo
 
 Training large language models is a resource-intensive process. Standard training methods treat all data points equally, expending the same computational effort on low-loss, redundant examples as on high-loss, informative ones.
 
-### Performance
-
-The method demonstrates a clear and significant trade-off between training speed and final model accuracy.
-
-| Run      | Accuracy (Mean ± Std)   | Time (s) (Mean ± Std) | Speedup |
-|----------|-------------------------|-----------------------|---------|
-| Baseline | 0.9309 ± 0.0004         | 316.3s ± 16.4s        | 1.00x   |
-| MC-Learn | 0.8698 ± 0.0008         | 111.7s ± 2.3s         | 2.83x   |
-
-The algorithm achieved an average **2.83x speedup** in training time, a substantial improvement that can lead to significant cost savings and faster development cycles. This performance gain was accompanied by an average absolute drop of **6.11%** in accuracy (a **6.6%** relative decrease), highlighting the algorithm's effectiveness in scenarios where training speed is a higher priority than achieving maximum accuracy (e.g., rapid prototyping).
-
-*Note: MC-Learn uses EMA distillation for stability, so its objective is not identical to baseline. The comparison is compute-matched (wall-clock), not strictly objective-matched.*
-
 ## The Solution: How It Works
 
 This algorithm employs an adaptive sampling strategy based on Monte Carlo methods to improve training efficiency. Instead of processing every data point, a lightweight surrogate model first evaluates the difficulty of a candidate pool of examples. The system then constructs a smaller, high-value training batch from this pool, focusing the computational budget on the examples most beneficial for model improvement.
@@ -58,6 +45,19 @@ This is the orchestration engine that manages the end-to-end training loop. It c
 * **Baseline:** The "Baseline" run represents standard model fine-tuning for one full epoch on the entire training dataset.
 * **Reproducibility:** All results are the **mean ± standard deviation** over **3 runs** (seeds 42, 43, 44).
 * **Environment:** Google Colab with GPU (T4 by default). Recent PyTorch / Transformers / Datasets.
+
+### Performance
+
+The method demonstrates a clear and significant trade-off between training speed and final model accuracy.
+
+| Run      | Accuracy (Mean ± Std)   | Time (s) (Mean ± Std) | Speedup |
+|----------|-------------------------|-----------------------|---------|
+| Baseline | 0.9309 ± 0.0004         | 316.3s ± 16.4s        | 1.00x   |
+| MC-Learn | 0.8698 ± 0.0008         | 111.7s ± 2.3s         | 2.83x   |
+
+The algorithm achieved an average **2.83x speedup** in training time, a substantial improvement that can lead to significant cost savings and faster development cycles. This performance gain was accompanied by an average absolute drop of **6.11%** in accuracy (a **6.6%** relative decrease), highlighting the algorithm's effectiveness in scenarios where training speed is a higher priority than achieving maximum accuracy (e.g., rapid prototyping).
+
+*Note: MC-Learn uses EMA distillation for stability, so its objective is not identical to baseline. The comparison is compute-matched (wall-clock), not strictly objective-matched.*
 
 ## Background and Foundational Concepts
 
