@@ -2,8 +2,7 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mikebaloun/MC-Learn/blob/main/Monte_Carlo_Learn.ipynb)
 
-MC-Learn is an adaptive sampling algorithm designed to reduce the wall-clock time and computational cost of fine-tuning Transformer models.  
-By selectively training on the **most informative examples**, it achieves a ~2.8× speedup in training at the cost of about a 6% absolute accuracy drop.
+MC-Learn is an adaptive sampling algorithm designed to reduce the wall-clock time and computational cost of fine-tuning Transformer models. By selectively training on the **most informative examples**, it achieves a ~2.8× speedup in training at the cost of about a 6% absolute accuracy drop.
 
 ---
 
