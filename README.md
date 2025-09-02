@@ -33,7 +33,7 @@ This is the data selection module. It executes the strategy defined by the `Poli
 
 ### ⚙️ The Trainer
 
-This is the orchestration engine that manages the end-to-end training loop. It coordinates the other modules and, most critically, computes the loss using a **control variate** gradient estimator. This statistical technique ensures that the gradient calculated from the small, biased subset of data is an unbiased and low-variance estimate of the true gradient over the entire dataset.
+This is the orchestration engine that manages the end-to-end training loop. It coordinates the other modules and computes the loss using a control variate gradient estimator. This yields a near-unbiased, low-variance estimate of the full-dataset gradient under standard importance weighting. To control variance, importance weights are clipped (`w_clip = 10.0`), which introduces a small, controllable bias—a standard practice to ensure stable training in importance-weighted estimators.
 
 ## Results & Analysis
 
@@ -43,20 +43,25 @@ This is the orchestration engine that manages the end-to-end training loop. It c
 * **Dataset:** **AG News**, a standard benchmark for text classification, consisting of 120,000 training samples.
 * **Task:** 4-class news topic classification (World, Sports, Business, Sci/Tech).
 * **Baseline:** The "Baseline" run represents standard model fine-tuning for one full epoch on the entire training dataset.
+* **Reproducibility:** All results are the **mean ± standard deviation** over **3 runs** (seeds 42, 43, 44).
+* **Environment:** Google Colab with GPU (T4 by default). Recent PyTorch / Transformers / Datasets.
 
 ### Performance
 
 The method demonstrates a clear and significant trade-off between training speed and final model accuracy.
 
-| Run      | Accuracy | Time (s) | Speedup |
-|----------|----------|----------|---------|
-| Baseline | 0.9307   | 335.4s   | 1.00x   |
-| MC-Learn | 0.8695   | 114.4s   | 2.93x   |
+| Run      | Accuracy (Mean ± Std)   | Time (s) (Mean ± Std) | Speedup |
+|----------|-------------------------|-----------------------|---------|
+| Baseline | 0.9309 ± 0.0004         | 316.3s ± 16.4s        | 1.00x   |
+| MC-Learn | 0.8698 ± 0.0008         | 111.7s ± 2.3s         | 2.83x   |
 
-The algorithm achieved a **2.93x speedup** in training time, a substantial improvement that can lead to significant cost savings and faster development cycles. This performance gain was accompanied by an absolute drop of **6.12%** in accuracy (a **6.6%** relative decrease), highlighting the algorithm's effectiveness in scenarios where training speed is a higher priority than achieving maximum accuracy (e.g., rapid prototyping).
+The algorithm achieved an average **2.83x speedup** in training time, a substantial improvement that can lead to significant cost savings and faster development cycles. This performance gain was accompanied by an average absolute drop of **6.11%** in accuracy (a **6.6%** relative decrease), highlighting the algorithm's effectiveness in scenarios where training speed is a higher priority than achieving maximum accuracy (e.g., rapid prototyping).
+
+*Note: MC-Learn uses EMA distillation for stability, so its objective is not identical to baseline. The comparison is compute-matched (wall-clock), not strictly objective-matched.*
 
 ## How to Run
 
 1.  Click the "Open in Colab" badge at the top of this page.
-2.  The notebook will open in Google Colab.
-3.  Run the cells in the notebook to execute the code and see the results.
+2.  The notebook will open in a new tab.
+3.  Ensure a GPU is active by going to **Runtime → Change runtime type → T4 GPU**.
+4.  Run the cells in the notebook to execute the code and reproduce the results.
