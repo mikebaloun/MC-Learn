@@ -6,7 +6,7 @@ MC-Learn is an adaptive sampling algorithm designed to reduce the wall-clock tim
 
 ---
 
-## 🚩 Motivation
+## Motivation
 
 Training large language models is expensive.  
 Standard fine-tuning wastes resources by treating **every example equally** — spending the same compute on easy, redundant data as on difficult, high-variance samples.
@@ -15,7 +15,7 @@ MC-Learn changes this by **learning where to spend compute**.
 
 ---
 
-## 🧩 How It Works
+## How It Works
 
 Instead of processing the full dataset every step:
 
@@ -30,26 +30,26 @@ This creates a **compute-efficient training loop**: spend more on the hardest, m
 
 ## ⚙️ System Components
 
-### 🧠 Policy Learner
+### Policy Learner
 Learns a sampling strategy online:
 - **Class Weights:** Allocate more budget to classes with higher gradient variance.  
 - **Sampling Temperature (τ):** Control sharpness of within-class selection.  
 - **Replay Share (ρ):** Mix in a replay buffer to regularize and prevent forgetting.  
 - **ESS Guard:** Monitors effective sample size to keep importance weighting stable.
 
-### ⚖️ Budget Solver
+### Budget Solver
 Allocates compute under a fixed budget:
 - Tracks **measured per-example costs** of scoring, cheap head, and full forward.  
 - Solves for optimal batch size *M* and inclusion probabilities *q*.  
 - Ensures wall-clock training stays within target budget ratio.
 
-### 👷 Sampler
+### Sampler
 Builds the actual training batch:
 - Scores a candidate pool with the surrogate head.  
 - Uses **soft top-k + replay union** to keep both hard and easy examples.  
 - Computes clipped **importance weights** for unbiasedness and variance control.
 
-### 🔄 Trainer
+### Trainer
 Runs the training loop with a **control variate estimator**.  
 
 In practice:
@@ -61,7 +61,7 @@ This combination makes the training **much faster**, while keeping the gradient 
 
 ---
 
-## 📊 Results
+## Results
 
 ### Experimental Setup
 - **Model:** `distilbert-base-uncased` (4-class classifier head)  
@@ -84,7 +84,7 @@ This is ideal for rapid prototyping and compute-constrained settings.
 
 ---
 
-## 🔍 Diagnostics
+## Diagnostics
 
 MC-Learn includes built-in analysis tools:
 - **Confusion Matrix**: visualize which classes are confused.  
@@ -94,7 +94,7 @@ These help identify when the surrogate scorer is under- or over-confident.
 
 ---
 
-## 📚 Background
+## Background
 
 MC-Learn builds on established concepts:
 - **Importance Sampling & Control Variates** — variance reduction in Monte Carlo estimators.  
@@ -103,7 +103,7 @@ MC-Learn builds on established concepts:
 
 ---
 
-## 🚀 How to Run
+## How to Run
 
 1. Click the **Colab badge** at the top.  
 2. Enable GPU: **Runtime → Change runtime type → GPU**.  
@@ -115,7 +115,7 @@ MC-Learn builds on established concepts:
 
 ---
 
-## 📌 Notes
+## Notes
 - Automatically adapts presets for fast GPUs (e.g. A100 with bf16).  
 - Importance weights are clipped at `w_clip = 10.0` to ensure stability.  
 - Designed for reproducibility: controlled seeds and fixed evaluation protocol.  
