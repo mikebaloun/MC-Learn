@@ -51,18 +51,14 @@ Builds the actual training batch:
 - Computes clipped **importance weights** for unbiasedness and variance control.
 
 ### 🔄 Trainer
-Runs the training loop with a **control variate estimator**:
+Runs the training loop with a **control variate estimator**.  
 
-\[
-\hat{L} = \sum_i w_i \, \ell_h(i) \;+\; \sum_{i \in S} \frac{w_i}{q_i}\,\big(\ell_f(i) - \ell_h(i)\big)
-\]
+In practice:
+- Every sampled example is passed through the **surrogate head**, producing a fast but approximate loss.  
+- A smaller subset of examples is also run through the **full forward pass**. The difference between full and surrogate losses is scaled up to correct for subsampling.  
+- **Importance weights** and **inclusion probabilities** ensure the estimator is statistically valid.  
 
-- \( \ell_h \): cheap surrogate loss  
-- \( \ell_f \): full forward loss  
-- \( w_i \): importance weights  
-- \( q_i \): inclusion probability for full forward  
-
-This estimator reduces variance while remaining nearly unbiased.
+This combination makes the training **much faster**, while keeping the gradient estimate **nearly unbiased**.
 
 ---
 
