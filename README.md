@@ -8,10 +8,7 @@ MC-Learn is an adaptive sampling algorithm designed to reduce the wall-clock tim
 
 ## Motivation
 
-Training large language models is expensive.  
-Standard fine-tuning wastes resources by treating **every example equally** — spending the same compute on easy, redundant data as on difficult, high-variance samples.
-
-MC-Learn changes this by **learning where to spend compute**.
+Training large language models is expensive. Standard fine-tuning wastes resources by treating **every example equally** — spending the same compute on easy, redundant data as on difficult, high-variance samples. MC-Learn changes this by **learning where to spend compute**.
 
 ---
 
